@@ -130,6 +130,7 @@ const institutions: Institution[] = [
       { code: "C", name: "英语" },
       { code: "D", name: "除三科以外科目" },
       { code: "E", name: "期末、期中考" },
+      { code: "F", name: "假期" },
     ],
   },
 ]
