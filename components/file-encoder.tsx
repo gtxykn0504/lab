@@ -238,7 +238,12 @@ export default function FileEncoder() {
       return
     }
 
-    const formattedDate = date.replace(/-/g, "")
+    // 处理日期，去除月份和日期的前导0
+    let formattedDate = date
+    if (date) {
+      const [year, month, day] = date.split("-")
+      formattedDate = `${year}${parseInt(month, 10)}${parseInt(day, 10)}`
+    }
     const codes: string[] = []
     const validItems: CodeItem[] = []
 
