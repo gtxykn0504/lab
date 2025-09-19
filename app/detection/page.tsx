@@ -120,7 +120,7 @@ export default function DeviceDetectionPage() {
         </div>
 
         {/* 设备类型卡片 */}
-        <Card className="border-l-4 border-l-primary">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               {getDeviceIcon(deviceInfo.deviceType)}
@@ -232,25 +232,6 @@ export default function DeviceDetectionPage() {
                   <div className="text-xs opacity-80">{breakpoint.range}</div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 实时尺寸显示 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>实时尺寸 (调整窗口大小试试)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center space-y-2">
-              <div className="text-6xl font-mono font-bold">
-                <span className="text-green-600">{deviceInfo.viewportWidth}</span>
-                <span className="text-muted-foreground mx-2">×</span>
-                <span className="text-green-600">{deviceInfo.viewportHeight}</span>
-              </div>
-              <div className="text-lg text-muted-foreground">
-                当前视口尺寸 (像素)
-              </div>
             </div>
           </CardContent>
         </Card>
