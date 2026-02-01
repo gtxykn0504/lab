@@ -100,7 +100,7 @@ export default function DeviceDetectionPage() {
 
   if (!mounted || !deviceInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-background via-background to-muted/20">
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded w-48 mb-4"></div>
           <div className="h-4 bg-muted rounded w-32"></div>
@@ -110,10 +110,10 @@ export default function DeviceDetectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 p-4">
       <div className="container mx-auto max-w-4xl py-8 space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             设备检测器
           </h1>
           <p className="text-muted-foreground">检测当前设备的屏幕尺寸、类型和响应式断点</p>
