@@ -44,7 +44,7 @@ export function FunctionPanel({ functions, setFunctions, setPixels }: FunctionPa
     yMax: 10,
   });
   const [isMarking, setIsMarking] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const addFunction = (isLatex: boolean = false) => {
     const newId = `fn-${Date.now()}`;

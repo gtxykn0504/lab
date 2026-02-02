@@ -380,17 +380,51 @@ export function PixelCanvas({
     setIsPanning(false);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (tool === "pan") {
+      setIsPanning(true);
+      setLastPanPos({ x: touch.clientX, y: touch.clientY });
+    } else {
+      setIsDrawing(true);
+      handlePixel(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (isPanning) {
+      setOffset((o) => ({
+        x: o.x + touch.clientX - lastPanPos.x,
+        y: o.y + touch.clientY - lastPanPos.y,
+      }));
+      setLastPanPos({ x: touch.clientX, y: touch.clientY });
+    } else if (isDrawing) {
+      handlePixel(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    stop();
+  };
+
   return (
     <canvas
       ref={canvasRef}
       width={dimensions.width}
       height={dimensions.height}
       className="fixed inset-0"
-      style={{ cursor: tool === "pan" ? "grab" : "crosshair" }}
+      style={{ cursor: tool === "pan" ? "grab" : "crosshair", touchAction: "none" }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={stop}
       onMouseLeave={stop}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onContextMenu={(e) => e.preventDefault()}
     />
   );
