@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 interface CoordinatesDisplayProps {
   offset: { x: number; y: number };
   gridSize: number;
+  onOpenCoordinateDialog: () => void;
 }
 
 export function CoordinatesDisplay({
   offset,
   gridSize,
+  onOpenCoordinateDialog,
 }: CoordinatesDisplayProps) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [gridPos, setGridPos] = useState({ x: 0, y: 0 });
@@ -27,7 +29,17 @@ export function CoordinatesDisplay({
   }, [offset, gridSize]);
 
   return (
-    <div className="fixed top-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg z-50">
+    <div
+      className="fixed bottom-4 right-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg z-50 cursor-pointer hover:bg-card transition-colors"
+      onClick={onOpenCoordinateDialog}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onOpenCoordinateDialog();
+        }
+      }}
+    >
       <div className="flex items-center gap-4 text-xs font-mono">
         <div className="flex items-center gap-1.5">
           <span className="text-muted-foreground">X:</span>

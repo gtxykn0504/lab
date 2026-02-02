@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import {
   parseLatex,
   evaluateExplicit,
-  evaluateImplicit,
   checkGridCell,
 } from "@/lib/latex-parser";
 
@@ -25,14 +24,18 @@ interface FunctionPanelProps {
 }
 
 const FUNCTION_COLORS = [
-  "#ef4444", // 红
-  "#f97316", // 橙
-  "#eab308", // 黄
-  "#22c55e", // 绿
-  "#3b82f6", // 蓝
-  "#8b5cf6", // 紫
-  "#ec4899", // 粉
-  "#14b8a6", // 青
+  "#ffffff", // 白色
+  "#1a1a2e", // 深灰
+  "#e74c3c", // 红色
+  "#e67e22", // 橙色
+  "#f1c40f", // 黄色
+  "#2ecc71", // 绿色
+  "#3498db", // 蓝色
+  "#9b59b6", // 紫色
+  "#1abc9c", // 青色
+  "#e91e63", // 粉色
+  "#795548", // 棕色
+  "#607d8b", // 蓝灰
 ];
 
 export function FunctionPanel({ functions, setFunctions, setPixels }: FunctionPanelProps) {
@@ -316,36 +319,36 @@ export function FunctionPanel({ functions, setFunctions, setPixels }: FunctionPa
                   <div className="flex flex-col">
                     <label className="text-[9px] text-muted-foreground mb-0.5">X 最小</label>
                     <input
-                      type="number"
+                      type="text"
                       value={range.xMin}
-                      onChange={(e) => setRange((r) => ({ ...r, xMin: Number(e.target.value) }))}
+                      onChange={(e) => setRange((r) => ({ ...r, xMin: Number(e.target.value) || 0 }))}
                       className="w-full bg-input border border-border rounded px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="flex flex-col">
                     <label className="text-[9px] text-muted-foreground mb-0.5">X 最大</label>
                     <input
-                      type="number"
+                      type="text"
                       value={range.xMax}
-                      onChange={(e) => setRange((r) => ({ ...r, xMax: Number(e.target.value) }))}
+                      onChange={(e) => setRange((r) => ({ ...r, xMax: Number(e.target.value) || 0 }))}
                       className="w-full bg-input border border-border rounded px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="flex flex-col">
                     <label className="text-[9px] text-muted-foreground mb-0.5">Y 最小</label>
                     <input
-                      type="number"
+                      type="text"
                       value={range.yMin}
-                      onChange={(e) => setRange((r) => ({ ...r, yMin: Number(e.target.value) }))}
+                      onChange={(e) => setRange((r) => ({ ...r, yMin: Number(e.target.value) || 0 }))}
                       className="w-full bg-input border border-border rounded px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>
                   <div className="flex flex-col">
                     <label className="text-[9px] text-muted-foreground mb-0.5">Y 最大</label>
                     <input
-                      type="number"
+                      type="text"
                       value={range.yMax}
-                      onChange={(e) => setRange((r) => ({ ...r, yMax: Number(e.target.value) }))}
+                      onChange={(e) => setRange((r) => ({ ...r, yMax: Number(e.target.value) || 0 }))}
                       className="w-full bg-input border border-border rounded px-1.5 py-0.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                   </div>

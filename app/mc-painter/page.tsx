@@ -5,6 +5,8 @@ import { PixelCanvas } from "@/components/mc/pixel-canvas";
 import { Toolbar } from "@/components/mc/toolbar";
 import { CoordinatesDisplay } from "@/components/mc/coordinates-display";
 import { FunctionPanel, type FunctionItem } from "@/components/mc/function-panel";
+import { Dialog } from "@/components/ui/dialog";
+import { CoordinateInputDialog } from "@/components/mc/coordinate-input-dialog";
 
 export default function PixelPainter() {
   const [pixels, setPixels] = useState<Map<string, string>>(new Map());
@@ -12,18 +14,28 @@ export default function PixelPainter() {
   const [tool, setTool] = useState<"brush" | "eraser" | "pan">("brush");
   const [currentColor, setCurrentColor] = useState("#2ecc71");
   const [functions, setFunctions] = useState<FunctionItem[]>([]);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [emptyCanvasDialogOpen, setEmptyCanvasDialogOpen] = useState(false);
+  const [coordinateDialogOpen, setCoordinateDialogOpen] = useState(false);
   const gridSize = 24;
 
   const handleReset = useCallback(() => {
-    if (confirm("确定要清空画布吗？")) {
-      setPixels(new Map());
-      setOffset({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-    }
+    setResetDialogOpen(true);
   }, []);
+
+  const confirmReset = useCallback(() => {
+    setPixels(new Map());
+    setOffset({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+  }, []);
+
+  const handleCoordinateHighlight = useCallback((x: number, y: number) => {
+    const key = `${x},${y}`;
+    setPixels((p) => new Map(p).set(key, currentColor));
+  }, [currentColor]);
 
   const handleExport = useCallback(() => {
     if (pixels.size === 0) {
-      alert("画布为空，请先绘制一些像素！");
+      setEmptyCanvasDialogOpen(true);
       return;
     }
 
@@ -118,8 +130,32 @@ export default function PixelPainter() {
         onReset={handleReset}
         onExport={handleExport}
       />
-      <CoordinatesDisplay offset={offset} gridSize={gridSize} />
+      <CoordinatesDisplay offset={offset} gridSize={gridSize} onOpenCoordinateDialog={() => setCoordinateDialogOpen(true)} />
       <FunctionPanel functions={functions} setFunctions={setFunctions} setPixels={setPixels} />
+      <Dialog
+        open={resetDialogOpen}
+        onClose={() => setResetDialogOpen(false)}
+        title="确认清空画布"
+        description="确定要清空当前画布吗？此操作不可撤销。"
+        confirmText="清空"
+        cancelText="取消"
+        onConfirm={confirmReset}
+      />
+      <Dialog
+        open={emptyCanvasDialogOpen}
+        onClose={() => setEmptyCanvasDialogOpen(false)}
+        title="提示"
+        description="画布为空，请先绘制一些像素！"
+        confirmText="好的"
+        variant="alert"
+      />
+      <CoordinateInputDialog
+        open={coordinateDialogOpen}
+        onClose={() => setCoordinateDialogOpen(false)}
+        onConfirm={handleCoordinateHighlight}
+        initialX={0}
+        initialY={0}
+      />
     </main>
   );
 }
