@@ -5,7 +5,8 @@ import { PixelCanvas } from "@/components/mc/pixel-canvas";
 import { Toolbar } from "@/components/mc/toolbar";
 import { CoordinatesDisplay } from "@/components/mc/coordinates-display";
 import { FunctionPanel, type FunctionItem } from "@/components/mc/function-panel";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { CoordinateInputDialog } from "@/components/mc/coordinate-input-dialog";
 
 export default function PixelPainter() {
@@ -132,23 +133,35 @@ export default function PixelPainter() {
       />
       <CoordinatesDisplay offset={offset} gridSize={gridSize} onOpenCoordinateDialog={() => setCoordinateDialogOpen(true)} />
       <FunctionPanel functions={functions} setFunctions={setFunctions} setPixels={setPixels} />
-      <Dialog
-        open={resetDialogOpen}
-        onClose={() => setResetDialogOpen(false)}
-        title="确认清空画布"
-        description="确定要清空当前画布吗？此操作不可撤销。"
-        confirmText="清空"
-        cancelText="取消"
-        onConfirm={confirmReset}
-      />
-      <Dialog
-        open={emptyCanvasDialogOpen}
-        onClose={() => setEmptyCanvasDialogOpen(false)}
-        title="提示"
-        description="画布为空，请先绘制一些像素！"
-        confirmText="好的"
-        variant="alert"
-      />
+      <Dialog open={resetDialogOpen} onOpenChange={(open) => !open && setResetDialogOpen(false)}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>确认清空画布</DialogTitle>
+            <DialogDescription>确定要清空当前画布吗？此操作不可撤销。</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary" size="sm">取消</Button>
+            </DialogClose>
+            <DialogClose asChild>
+              <Button size="sm" onClick={confirmReset}>清空</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={emptyCanvasDialogOpen} onOpenChange={(open) => !open && setEmptyCanvasDialogOpen(false)}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>提示</DialogTitle>
+            <DialogDescription>画布为空，请先绘制一些像素！</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button size="sm">好的</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <CoordinateInputDialog
         open={coordinateDialogOpen}
         onClose={() => setCoordinateDialogOpen(false)}

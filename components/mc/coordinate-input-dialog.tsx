@@ -1,8 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface CoordinateInputDialogProps {
   open: boolean;
@@ -44,15 +53,14 @@ export function CoordinateInputDialog({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-card border border-border rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h3 className="text-lg font-medium text-foreground mb-4">
-          设置高亮坐标
-        </h3>
-        <div className="space-y-3 mb-6">
+    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>设置高亮坐标</DialogTitle>
+          <DialogDescription>输入要高亮显示的坐标位置</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-4">
           <div className="flex items-center gap-3">
             <label className="text-sm text-muted-foreground w-8">X:</label>
             <Input
@@ -76,22 +84,15 @@ export function CoordinateInputDialog({
             />
           </div>
         </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onClose}
-          >
-            取消
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleConfirm}
-          >
-            确认
-          </Button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="secondary" size="sm">取消</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button size="sm" onClick={handleConfirm}>确认</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

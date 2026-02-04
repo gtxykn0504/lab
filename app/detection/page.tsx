@@ -100,27 +100,45 @@ export default function DeviceDetectionPage() {
 
   if (!mounted || !deviceInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-background via-background to-muted/20">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-48 mb-4"></div>
-          <div className="h-4 bg-muted rounded w-32"></div>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="bg-gradient-to-b from-primary/5 to-transparent">
+          <div className="container mx-auto px-4 py-12">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <h1 className="text-3xl font-bold text-foreground">设备检测器</h1>
+              </div>
+              <p className="text-muted-foreground">检测当前设备的屏幕尺寸、类型和响应式断点</p>
+            </div>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="animate-pulse">
+              <div className="h-8 bg-muted rounded w-48 mb-4"></div>
+              <div className="h-4 bg-muted rounded w-32"></div>
+            </div>
+          </div>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background via-background to-muted/20 p-4">
-      <div className="container mx-auto max-w-4xl py-8 space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-linear-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            设备检测器
-          </h1>
-          <p className="text-muted-foreground">检测当前设备的屏幕尺寸、类型和响应式断点</p>
+    <div className="min-h-screen bg-background">
+      <header className="bg-gradient-to-b from-primary/5 to-transparent">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <h1 className="text-3xl font-bold text-foreground">设备检测器</h1>
+            </div>
+            <p className="text-muted-foreground">检测当前设备的屏幕尺寸、类型和响应式断点</p>
+          </div>
         </div>
+      </header>
 
+      <main className="container mx-auto px-4 py-8 space-y-6">
         {/* 设备类型卡片 */}
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               {getDeviceIcon(deviceInfo.deviceType)}
@@ -145,7 +163,7 @@ export default function DeviceDetectionPage() {
         {/* 尺寸信息 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 视口尺寸 */}
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>视口尺寸 (Viewport)</CardTitle>
             </CardHeader>
@@ -175,7 +193,7 @@ export default function DeviceDetectionPage() {
           </Card>
 
           {/* 屏幕尺寸 */}
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>屏幕分辨率 (Screen)</CardTitle>
             </CardHeader>
@@ -206,7 +224,7 @@ export default function DeviceDetectionPage() {
         </div>
 
         {/* Tailwind CSS 断点参考 */}
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Tailwind CSS 响应式断点</CardTitle>
           </CardHeader>
@@ -237,7 +255,7 @@ export default function DeviceDetectionPage() {
         </Card>
 
         {/* 用户代理信息 */}
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>浏览器信息</CardTitle>
           </CardHeader>
@@ -252,7 +270,7 @@ export default function DeviceDetectionPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   )
 }
