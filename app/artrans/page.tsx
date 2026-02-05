@@ -303,17 +303,16 @@ export default function ArtransViewer() {
                           onCheckedChange={(checked) => handleSelectOne(comment.id, checked as boolean)}
                           className="shrink-0"
                         />
-                        <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-lg shrink-0">
-                          {comment.nick?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
                         <div className="min-w-0 flex-1">
                           <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-                            <span className="truncate">{comment.nick || "匿名"}</span>
-                            {comment.badge_name && (
-                              <Badge variant="secondary" className="text-xs">
-                                {comment.badge_name}
-                              </Badge>
-                            )}
+                            <span className="truncate">
+                              {comment.nick || "匿名"}
+                              {comment.badge_name && (
+                                <Badge variant="secondary" className="text-xs ml-2">
+                                  {comment.badge_name}
+                                </Badge>
+                              )}
+                            </span>
                           </CardTitle>
                           <p className="text-sm text-muted-foreground truncate">
                             {comment.email}
