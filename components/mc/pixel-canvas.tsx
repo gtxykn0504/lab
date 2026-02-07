@@ -278,10 +278,17 @@ export function PixelCanvas({
       color: string
     ) {
       ctx.strokeStyle = color;
-      const step = 4;
+      ctx.lineWidth = 2;
+      const step = 8; // 增大步长提升性能
 
-      for (let sx = 0; sx < width; sx += step) {
-        for (let sy = 0; sy < height; sy += step) {
+      // 只遍历可见区域
+      const startX = Math.max(0, Math.floor(-offset.x / gridSize) * gridSize);
+      const startY = Math.max(0, Math.floor(-offset.y / gridSize) * gridSize);
+      const endX = Math.min(width, Math.ceil((width - offset.x) / gridSize) * gridSize + offset.x);
+      const endY = Math.min(height, Math.ceil((height - offset.y) / gridSize) * gridSize + offset.y);
+
+      for (let sx = startX; sx < endX; sx += step) {
+        for (let sy = startY; sy < endY; sy += step) {
           const x0 = (sx - offset.x) / gridSize;
           const y0 = -(sy - offset.y) / gridSize;
           const x1 = (sx + step - offset.x) / gridSize;
@@ -300,6 +307,7 @@ export function PixelCanvas({
           )
             continue;
 
+          // Marching Squares 配置
           const config =
             (v00 > 0 ? 8 : 0) +
             (v10 > 0 ? 4 : 0) +
@@ -308,9 +316,69 @@ export function PixelCanvas({
 
           if (config === 0 || config === 15) continue;
 
+          // 线性插值计算零点位置
+          const lerp = (v0: number, v1: number) => {
+            const t = Math.abs(v0) / (Math.abs(v0) + Math.abs(v1));
+            return Math.max(0, Math.min(1, t));
+          };
+
+          // 计算边的中点（插值）
+          const topT = lerp(v00, v10);
+          const rightT = lerp(v10, v11);
+          const bottomT = lerp(v01, v11);
+          const leftT = lerp(v00, v01);
+
+          const top = { x: sx + topT * step, y: sy };
+          const right = { x: sx + step, y: sy + rightT * step };
+          const bottom = { x: sx + bottomT * step, y: sy + step };
+          const left = { x: sx, y: sy + leftT * step };
+
+          // 根据配置绘制线段
           ctx.beginPath();
-          ctx.moveTo(sx, sy);
-          ctx.lineTo(sx + step, sy + step);
+          switch (config) {
+            case 1:
+            case 14:
+              ctx.moveTo(left.x, left.y);
+              ctx.lineTo(bottom.x, bottom.y);
+              break;
+            case 2:
+            case 13:
+              ctx.moveTo(bottom.x, bottom.y);
+              ctx.lineTo(right.x, right.y);
+              break;
+            case 3:
+            case 12:
+              ctx.moveTo(left.x, left.y);
+              ctx.lineTo(right.x, right.y);
+              break;
+            case 4:
+            case 11:
+              ctx.moveTo(top.x, top.y);
+              ctx.lineTo(right.x, right.y);
+              break;
+            case 5:
+              ctx.moveTo(left.x, left.y);
+              ctx.lineTo(top.x, top.y);
+              ctx.moveTo(bottom.x, bottom.y);
+              ctx.lineTo(right.x, right.y);
+              break;
+            case 6:
+            case 9:
+              ctx.moveTo(top.x, top.y);
+              ctx.lineTo(bottom.x, bottom.y);
+              break;
+            case 7:
+            case 8:
+              ctx.moveTo(left.x, left.y);
+              ctx.lineTo(top.x, top.y);
+              break;
+            case 10:
+              ctx.moveTo(top.x, top.y);
+              ctx.lineTo(left.x, left.y);
+              ctx.moveTo(right.x, right.y);
+              ctx.lineTo(bottom.x, bottom.y);
+              break;
+          }
           ctx.stroke();
         }
       }

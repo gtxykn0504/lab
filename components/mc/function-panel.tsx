@@ -52,6 +52,8 @@ export function FunctionPanel({ functions, setFunctions, setPixels }: FunctionPa
   const addFunction = (isLatex: boolean = false) => {
     const newId = `fn-${Date.now()}`;
     const colorIndex = functions.length % FUNCTION_COLORS.length;
+    // 新增函数时自动展开面板（如果当前是折叠的）
+    if (collapsed) setCollapsed(false);
     setFunctions((prev) => [
       ...prev,
       {
