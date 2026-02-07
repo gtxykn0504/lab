@@ -25,7 +25,6 @@ interface FunctionPanelProps {
 
 const FUNCTION_COLORS = [
   "#ffffff", // 白色
-  "#1a1a2e", // 深灰
   "#e74c3c", // 红色
   "#e67e22", // 橙色
   "#f1c40f", // 黄色

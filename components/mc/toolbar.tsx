@@ -16,7 +16,6 @@ interface ToolbarProps {
 
 const COLORS = [
   "#ffffff", // 白色
-  "#1a1a2e", // 深灰
   "#e74c3c", // 红色
   "#e67e22", // 橙色
   "#f1c40f", // 黄色
@@ -44,7 +43,7 @@ export function Toolbar({
         <ToolButton
           active={tool === "pan"}
           onClick={() => setTool("pan")}
-          tooltip="移动画布"
+          tooltip="控制"
         >
           <Move className="w-4 h-4" />
         </ToolButton>

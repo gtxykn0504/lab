@@ -200,7 +200,7 @@ export default function ArtransViewer() {
                   </label>
                   <Badge variant="secondary" className="text-sm px-3 py-1.5">
                     <FileJson className="h-3.5 w-3.5 mr-1.5" />
-                    {comments.length} 条评论
+                    {comments.length} 条
                   </Badge>
                   {selectedIds.size > 0 && (
                     <Badge variant="default" className="text-sm px-3 py-1.5">

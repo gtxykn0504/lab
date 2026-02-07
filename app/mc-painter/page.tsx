@@ -12,7 +12,7 @@ import { CoordinateInputDialog } from "@/components/mc/coordinate-input-dialog";
 export default function PixelPainter() {
   const [pixels, setPixels] = useState<Map<string, string>>(new Map());
   const [offset, setOffset] = useState({ x: 400, y: 300 });
-  const [tool, setTool] = useState<"brush" | "eraser" | "pan">("brush");
+  const [tool, setTool] = useState<"brush" | "eraser" | "pan">("pan");
   const [currentColor, setCurrentColor] = useState("#2ecc71");
   const [functions, setFunctions] = useState<FunctionItem[]>([]);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
