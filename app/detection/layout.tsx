@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   description: "检测当前设备的屏幕尺寸、类型和响应式断点",
 }
 
-export default function PhotoLayout({ children }: { children: React.ReactNode }) {
+export default function DetectionLayout({ children }: { children: React.ReactNode }) {
   return children
 }

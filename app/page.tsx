@@ -9,7 +9,7 @@ export default function Home() {
   
   const inventoryItems = [
     { id: 1, icon: '✏️', name: 'Minecraft Painter', route: '/mc-painter' },
-    { id: 2, icon: '', name: '', route: '' },
+    { id: 2, icon: '🔢', name: 'Expected value and variance calculator', route: '/evc' },
     { id: 3, icon: '', name: '', route: '' },
     { id: 4, icon: '', name: '', route: '' },
     { id: 5, icon: '📱', name: 'Device detector', route: '/detection' },

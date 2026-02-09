@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   description: "按类型生成对应的文件编码内容",
 }
 
-export default function PhotoLayout({ children }: { children: React.ReactNode }) {
+export default function FileLayout({ children }: { children: React.ReactNode }) {
   return children
 }

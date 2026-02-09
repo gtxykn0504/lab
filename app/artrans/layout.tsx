@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   description: "可视化Artrans评论数据，包括评论内容、用户信息和评论时间",
 }
 
-export default function PhotoLayout({ children }: { children: React.ReactNode }) {
+export default function ArtTransLayout({ children }: { children: React.ReactNode }) {
   return children
 }
