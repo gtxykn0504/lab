@@ -26,6 +26,7 @@ const COLORS = [
   "#e91e63", // 粉色
   "#795548", // 棕色
   "#607d8b", // 蓝灰
+  "#12d1ef", // 亮青色
 ];
 
 export function Toolbar({

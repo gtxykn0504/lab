@@ -1,9 +1,7 @@
 "use client"
 
-import React from "react"
-
-import { useState, useMemo } from "react"
-import { Upload, Search, Edit2, Save, X, FileJson, Trash2 } from "lucide-react"
+import React, { useState, useMemo, useEffect } from "react"
+import { Upload, Search, Edit2, Save, X, FileJson, Trash2, AlertCircle} from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -40,7 +39,6 @@ interface Comment {
   page_title: string
   site_name: string
   site_urls: string
-  // 排除的字段
   ua?: string
   is_collapsed?: string
   is_pending?: string
@@ -54,13 +52,107 @@ interface Comment {
 
 type SearchField = "all" | "content" | "ip" | "created_at" | "email" | "nick" | "page_key" | "site_name"
 
+const SEARCH_FIELDS: { value: SearchField; label: string }[] = [
+  { value: "all", label: "全部字段" },
+  { value: "content", label: "Content" },
+  { value: "ip", label: "IP" },
+  { value: "created_at", label: "Created At" },
+  { value: "email", label: "Email" },
+  { value: "nick", label: "Nick" },
+  { value: "page_key", label: "Page Key" },
+  { value: "site_name", label: "Site Name" },
+]
+
+const FIELD_LABELS: Record<string, string> = {
+  nick: "昵称",
+  email: "邮箱",
+  content: "内容 (HTML)",
+  ip: "IP",
+  link: "链接",
+  created_at: "创建时间",
+  page_key: "页面 Key",
+  page_title: "页面标题",
+  site_name: "站点名",
+  site_urls: "站点 URL",
+  badge_name: "徽章名称",
+}
+
 export default function ArtransViewer() {
   const [comments, setComments] = useState<Comment[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [searchField, setSearchField] = useState<SearchField>("all")
   const [editingComment, setEditingComment] = useState<Comment | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  
+  // Dialog states
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [dialogConfig, setDialogConfig] = useState<{
+    title: string
+    message: string
+    type: 'alert' | 'confirm'
+    onConfirm?: () => void
+  }>({
+    title: "",
+    message: "",
+    type: 'alert',
+  })
+
+  // 图片样式
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .comment-content img {
+        max-width: 100%;
+        max-height: 400px;
+        height: auto;
+        width: auto;
+        object-fit: contain;
+        border-radius: 4px;
+        margin: 8px 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      }
+      .comment-content img:hover {
+        transform: scale(1.01);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+      .comment-content {
+        overflow-x: auto;
+      }
+      @media (max-width: 768px) {
+        .comment-content img {
+          max-height: 300px;
+        }
+      }
+    `
+    document.head.appendChild(style)
+    
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  // Dialog helper functions
+  const showAlert = (title: string, message: string) => {
+    setDialogConfig({
+      title,
+      message,
+      type: 'alert'
+    })
+    setIsAlertDialogOpen(true)
+  }
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setDialogConfig({
+      title,
+      message,
+      type: 'confirm',
+      onConfirm
+    })
+    setIsConfirmDialogOpen(true)
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -70,13 +162,12 @@ export default function ArtransViewer() {
     reader.onload = (e) => {
       try {
         let text = e.target?.result as string
-        // 尝试修复常见的 JSON 格式问题（如尾随逗号）
+        // 修复JSON格式问题
         text = text.replace(/,\s*]/g, "]").replace(/,\s*}/g, "}")
         const json = JSON.parse(text)
         setComments(Array.isArray(json) ? json : [json])
       } catch (err) {
-        console.log("[v0] JSON parse error:", err)
-        alert("JSON 解析失败，请检查文件格式。提示：" + (err as Error).message)
+        showAlert("JSON 解析失败", `请检查文件格式：${err instanceof Error ? err.message : "未知错误"}`)
       }
     }
     reader.readAsText(file)
@@ -105,7 +196,7 @@ export default function ArtransViewer() {
 
   const handleEdit = (comment: Comment) => {
     setEditingComment({ ...comment })
-    setIsDialogOpen(true)
+    setIsEditDialogOpen(true)
   }
 
   const handleSave = () => {
@@ -114,7 +205,7 @@ export default function ArtransViewer() {
     setComments((prev) =>
       prev.map((c) => (c.id === editingComment.id ? editingComment : c))
     )
-    setIsDialogOpen(false)
+    setIsEditDialogOpen(false)
     setEditingComment(null)
   }
 
@@ -129,39 +220,37 @@ export default function ArtransViewer() {
     URL.revokeObjectURL(url)
   }
 
-  const stripHtml = (html: string) => {
-    const div = document.createElement("div")
-    div.innerHTML = html
-    return div.textContent || div.innerText || ""
-  }
-
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(filteredComments.map((c) => c.id)))
-    } else {
-      setSelectedIds(new Set())
-    }
+    setSelectedIds(checked ? new Set(filteredComments.map((c) => c.id)) : new Set())
   }
 
   const handleSelectOne = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedIds)
-    if (checked) {
-      newSelected.add(id)
-    } else {
-      newSelected.delete(id)
-    }
-    setSelectedIds(newSelected)
+    setSelectedIds((prev) => {
+      const newSelected = new Set(prev)
+      checked ? newSelected.add(id) : newSelected.delete(id)
+      return newSelected
+    })
   }
 
   const handleBatchDelete = () => {
     if (selectedIds.size === 0) return
-    if (confirm(`确定要删除选中的 ${selectedIds.size} 条评论吗？`)) {
-      setComments((prev) => prev.filter((c) => !selectedIds.has(c.id)))
-      setSelectedIds(new Set())
-    }
+    
+    showConfirm(
+      "确认删除",
+      `确定要删除选中的 ${selectedIds.size} 条评论吗？此操作不可撤销。`,
+      () => {
+        setComments((prev) => prev.filter((c) => !selectedIds.has(c.id)))
+        setSelectedIds(new Set())
+      }
+    )
   }
 
-  const isAllSelected = filteredComments.length > 0 && filteredComments.every((c) => selectedIds.has(c.id))
+  const handleFieldChange = (field: keyof Comment, value: string) => {
+    if (!editingComment) return
+    setEditingComment({ ...editingComment, [field]: value })
+  }
+
+  const isAllSelected = filteredComments.length > 0 && selectedIds.size === filteredComments.length
 
   return (
     <div className="min-h-screen bg-background">
@@ -171,17 +260,15 @@ export default function ArtransViewer() {
             <div className="flex items-center justify-center gap-3 mb-3">
               <h1 className="text-3xl font-bold text-foreground">Artrans 评论可视化</h1>
             </div>
-            <p className="text-muted-foreground">请先将Artrans修改后缀为JSON</p>
+            <p className="text-muted-foreground">请先将 Artrans 修改后缀为 JSON</p>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* 上传、统计与搜索区域 */}
         <Card className="mb-8 shadow-sm">
           <CardContent className="pt-6">
             <div className="space-y-6">
-              {/* 上传和统计 */}
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="flex items-center gap-4">
                   <label className="cursor-pointer">
@@ -202,11 +289,6 @@ export default function ArtransViewer() {
                     <FileJson className="h-3.5 w-3.5 mr-1.5" />
                     {comments.length} 条
                   </Badge>
-                  {selectedIds.size > 0 && (
-                    <Badge variant="default" className="text-sm px-3 py-1.5">
-                      已选择 {selectedIds.size} 条
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex gap-3">
                   {selectedIds.size > 0 && (
@@ -216,7 +298,7 @@ export default function ArtransViewer() {
                     </Button>
                   )}
                   {comments.length > 0 && (
-                    <Button onClick={handleExport} variant="outline" size="lg" className="gap-2 bg-transparent">
+                    <Button onClick={handleExport} variant="outline" size="lg" className="gap-2">
                       <Save className="h-4 w-4" />
                       导出修改后的 JSON
                     </Button>
@@ -224,7 +306,6 @@ export default function ArtransViewer() {
                 </div>
               </div>
 
-              {/* 搜索 */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1">
                   <div className="relative">
@@ -245,14 +326,11 @@ export default function ArtransViewer() {
                     <SelectValue placeholder="搜索字段" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">全部字段</SelectItem>
-                    <SelectItem value="content">Content</SelectItem>
-                    <SelectItem value="ip">IP</SelectItem>
-                    <SelectItem value="created_at">Created At</SelectItem>
-                    <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="nick">Nick</SelectItem>
-                    <SelectItem value="page_key">Page Key</SelectItem>
-                    <SelectItem value="site_name">Site Name</SelectItem>
+                    {SEARCH_FIELDS.map((field) => (
+                      <SelectItem key={field.value} value={field.value}>
+                        {field.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -265,7 +343,6 @@ export default function ArtransViewer() {
           </CardContent>
         </Card>
 
-        {/* 评论列表 */}
         {comments.length === 0 ? (
           <Card className="shadow-sm">
             <CardContent className="py-20">
@@ -329,205 +406,155 @@ export default function ArtransViewer() {
                       </Button>
                     </div>
                   </CardHeader>
-                <CardContent className="pt-0">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground mb-5 leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: comment.content }}
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">ID</span>
-                      <span className="text-foreground">{comment.id}</span>
-                      {comment.rid !== "0" && (
-                        <span className="text-muted-foreground"> (回复 #{comment.rid})</span>
-                      )}
+                  <CardContent className="pt-0">
+                    <div
+                      className="prose prose-sm max-w-none text-foreground mb-5 leading-relaxed comment-content"
+                      dangerouslySetInnerHTML={{ __html: comment.content }}
+                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">ID</span>
+                        <span className="text-foreground">{comment.id}</span>
+                        {comment.rid !== "0" && (
+                          <span className="text-muted-foreground"> (回复 #{comment.rid})</span>
+                        )}
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">IP</span>
+                        <span className="text-foreground">{comment.ip}</span>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">创建时间</span>
+                        <span className="text-foreground">{comment.created_at}</span>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">链接</span>
+                        <a
+                          href={comment.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline truncate block font-medium"
+                        >
+                          {comment.link || "-"}
+                        </a>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">页面</span>
+                        <span className="text-foreground truncate block" title={comment.page_title}>
+                          {comment.page_key}
+                        </span>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">页面标题</span>
+                        <span className="text-foreground truncate block">{comment.page_title}</span>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">站点名</span>
+                        <span className="text-foreground">{comment.site_name}</span>
+                      </div>
+                      <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
+                        <span className="text-muted-foreground block mb-1 font-medium">站点 URL</span>
+                        <a
+                          href={comment.site_urls}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline truncate block font-medium"
+                        >
+                          {comment.site_urls}
+                        </a>
+                      </div>
                     </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">IP</span>
-                      <span className="text-foreground">{comment.ip}</span>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">创建时间</span>
-                      <span className="text-foreground">{comment.created_at}</span>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">链接</span>
-                      <a
-                        href={comment.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline truncate block font-medium"
-                      >
-                        {comment.link || "-"}
-                      </a>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">页面</span>
-                      <span className="text-foreground truncate block" title={comment.page_title}>
-                        {comment.page_key}
-                      </span>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">页面标题</span>
-                      <span className="text-foreground truncate block">{comment.page_title}</span>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">站点名</span>
-                      <span className="text-foreground">{comment.site_name}</span>
-                    </div>
-                    <div className="bg-accent/50 rounded-lg px-3 py-2.5 border border-border/50">
-                      <span className="text-muted-foreground block mb-1 font-medium">站点 URL</span>
-                      <a
-                        href={comment.site_urls}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline truncate block font-medium"
-                      >
-                        {comment.site_urls}
-                      </a>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </>
         )}
       </main>
 
-      {/* 编辑弹窗 */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* 编辑评论 Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>编辑评论 #{editingComment?.id}</DialogTitle>
           </DialogHeader>
           {editingComment && (
             <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nick">昵称</Label>
-                <Input
-                  id="nick"
-                  value={editingComment.nick}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, nick: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">邮箱</Label>
-                <Input
-                  id="email"
-                  value={editingComment.email}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, email: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="content">内容 (HTML)</Label>
-                <Textarea
-                  id="content"
-                  value={editingComment.content}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, content: e.target.value })
-                  }
-                  rows={4}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="ip">IP</Label>
-                <Input
-                  id="ip"
-                  value={editingComment.ip}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, ip: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="link">链接</Label>
-                <Input
-                  id="link"
-                  value={editingComment.link}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, link: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="created_at">创建时间</Label>
-                <Input
-                  id="created_at"
-                  value={editingComment.created_at}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, created_at: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="page_key">页面 Key</Label>
-                  <Input
-                    id="page_key"
-                    value={editingComment.page_key}
-                    onChange={(e) =>
-                      setEditingComment({ ...editingComment, page_key: e.target.value })
-                    }
-                  />
+              {Object.entries(FIELD_LABELS).map(([field, label]) => (
+                <div key={field} className="grid gap-2">
+                  <Label htmlFor={field}>{label}</Label>
+                  {field === "content" ? (
+                    <Textarea
+                      id={field}
+                      value={editingComment[field as keyof Comment] as string}
+                      onChange={(e) => handleFieldChange(field as keyof Comment, e.target.value)}
+                      rows={4}
+                    />
+                  ) : (
+                    <Input
+                      id={field}
+                      value={editingComment[field as keyof Comment] as string}
+                      onChange={(e) => handleFieldChange(field as keyof Comment, e.target.value)}
+                    />
+                  )}
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="page_title">页面标题</Label>
-                  <Input
-                    id="page_title"
-                    value={editingComment.page_title}
-                    onChange={(e) =>
-                      setEditingComment({ ...editingComment, page_title: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="site_name">站点名</Label>
-                  <Input
-                    id="site_name"
-                    value={editingComment.site_name}
-                    onChange={(e) =>
-                      setEditingComment({ ...editingComment, site_name: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="site_urls">站点 URL</Label>
-                  <Input
-                    id="site_urls"
-                    value={editingComment.site_urls}
-                    onChange={(e) =>
-                      setEditingComment({ ...editingComment, site_urls: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="badge_name">徽章名称</Label>
-                <Input
-                  id="badge_name"
-                  value={editingComment.badge_name}
-                  onChange={(e) =>
-                    setEditingComment({ ...editingComment, badge_name: e.target.value })
-                  }
-                />
-              </div>
+              ))}
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               <X className="h-4 w-4 mr-2" />
               取消
             </Button>
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
               保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Alert Dialog */}
+      <Dialog open={isAlertDialogOpen} onOpenChange={setIsAlertDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-500" />
+              {dialogConfig.title}
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              {dialogConfig.message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setIsAlertDialogOpen(false)}>
+              确定
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Dialog */}
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              {dialogConfig.title}
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              {dialogConfig.message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
+              取消
+            </Button>
+            <Button variant="destructive" onClick={() => {
+              dialogConfig.onConfirm?.()
+              setIsConfirmDialogOpen(false)
+            }}>
+              确定
             </Button>
           </DialogFooter>
         </DialogContent>

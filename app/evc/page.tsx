@@ -188,74 +188,74 @@ export default function ExpectedValueCalculator() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-gradient-to-b from-primary/5 to-transparent">
-        <div className="container mx-auto px-4 py-12">
+      <header className="bg-gradient-to-b from-primary/5 to-transparent px-4 py-6 sm:py-12">
+        <div className="container mx-auto">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <h1 className="text-3xl font-bold text-foreground">数学期望与方差计算器</h1>
+            <div className="flex items-center justify-center gap-3 mb-2 sm:mb-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">数学期望与方差计算器</h1>
             </div>
-            <p className="text-muted-foreground">输入X与P的分布列，自动计算数学期望与方差</p>
+            <p className="text-sm sm:text-base text-muted-foreground">输入分布列，计算数学期望与方差</p>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertTitle>错误</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>分布列输入</CardTitle>
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">分布列输入</CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
+          <CardContent className="pt-2 sm:pt-6">
+            <div className="space-y-3 sm:space-y-6">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground">X (取值)</th>
-                      <th className="py-3 px-4 text-left font-medium text-muted-foreground">P (概率)</th>
-                      <th className="py-3 px-4 text-right font-medium text-muted-foreground">操作</th>
+                      <th className="py-2 sm:py-3 px-2 sm:px-4 text-left font-medium text-muted-foreground text-xs sm:text-sm">X (取值)</th>
+                      <th className="py-2 sm:py-3 px-2 sm:px-4 text-left font-medium text-muted-foreground text-xs sm:text-sm">P (概率)</th>
+                      <th className="py-2 sm:py-3 px-2 sm:px-4 text-right font-medium text-muted-foreground text-xs sm:text-sm">操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     {distribution.map((item, index) => (
                       <tr key={item.id} className="border-b border-border">
-                        <td className="py-3 px-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor={`x-${index}`}>X{index + 1}</Label>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                          <div className="grid gap-1 sm:gap-2">
+                            <Label htmlFor={`x-${index}`} className="text-xs sm:text-sm">X{index + 1}</Label>
                             <Input
                               id={`x-${index}`}
-                              placeholder="如: 1 或 1/5"
+                              placeholder="1 或 1/5"
                               value={item.x}
                               onChange={(e) => handleUpdateValue(item.id, "x", e.target.value)}
-                              className="h-11"
+                              className="h-9 sm:h-11 text-sm"
                             />
                           </div>
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor={`p-${index}`}>P{index + 1}</Label>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                          <div className="grid gap-1 sm:gap-2">
+                            <Label htmlFor={`p-${index}`} className="text-xs sm:text-sm">P{index + 1}</Label>
                             <Input
                               id={`p-${index}`}
-                              placeholder="如: 0.5 或 1/2"
+                              placeholder="0.5 或 1/2"
                               value={item.p}
                               onChange={(e) => handleUpdateValue(item.id, "p", e.target.value)}
-                              className="h-11"
+                              className="h-9 sm:h-11 text-sm"
                             />
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                           {index >= 2 && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleRemoveRow(item.id)}
-                              className="h-11 w-11 hover:bg-destructive/10 hover:text-destructive"
+                              className="h-9 w-9 sm:h-11 sm:w-11 hover:bg-destructive/10 hover:text-destructive"
                             >
                               ✕
                             </Button>
@@ -271,7 +271,7 @@ export default function ExpectedValueCalculator() {
                 <Button
                   variant="outline"
                   onClick={handleAddRow}
-                  className="gap-2"
+                  className="gap-2 text-sm h-9 sm:h-11 px-4"
                 >
                   + 添加一行
                 </Button>
@@ -280,17 +280,17 @@ export default function ExpectedValueCalculator() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>数学期望 (E(X))</CardTitle>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">数学期望 E(X)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary mb-4">
-                {isValid ? getDisplayValue(expectedValue) : "-"}
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
+                {isValid ? getDisplayValue(expectedValue) : "Null"}
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {isValid && !shouldShowAsDecimal(expectedValue) && (
                     <span>小数值: {fractionToDecimal(expectedValue).toFixed(6)}</span>
                   )}
@@ -300,15 +300,15 @@ export default function ExpectedValueCalculator() {
           </Card>
 
           <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>方差 (Var(X))</CardTitle>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">方差 D(X)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary mb-4">
-                {isValid ? getDisplayValue(variance) : "-"}
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-4">
+                {isValid ? getDisplayValue(variance) : "Null"}
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {isValid && !shouldShowAsDecimal(variance) && (
                     <span>小数值: {fractionToDecimal(variance).toFixed(6)}</span>
                   )}
