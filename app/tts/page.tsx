@@ -40,6 +40,7 @@ export default function TTSTool() {
   const [hiddenSegments, setHiddenSegments] = useState<boolean[]>([])
   const [voices, setVoices] = useState<VoiceInfo[]>([])
   const [selectedVoice, setSelectedVoice] = useState<string>("")
+  const [segmentsPerRead, setSegmentsPerRead] = useState<number>(1)
   
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null)
   const isManualStopRef = useRef<boolean>(false)
@@ -189,6 +190,54 @@ export default function TTSTool() {
     synthRef.current.speak(utterance)
   }
 
+  // 朗读多个句子
+  const speakMultipleSegments = (startIndex: number, count: number, onEnd?: () => void) => {
+    if (!synthRef.current || startIndex >= segments.length) return
+    
+    const endIndex = Math.min(startIndex + count, segments.length)
+    const textToSpeak = segments.slice(startIndex, endIndex).join('')
+    
+    isManualStopRef.current = false
+    synthRef.current.cancel()
+    
+    const utterance = new SpeechSynthesisUtterance(textToSpeak)
+    
+    // 设置语音
+    if (selectedVoice) {
+      const voices = window.speechSynthesis.getVoices()
+      const selectedVoiceObj = voices.find(v => v.name === selectedVoice)
+      if (selectedVoiceObj) {
+        utterance.voice = selectedVoiceObj
+      }
+    }
+    
+    utterance.lang = "zh-CN"
+    utterance.rate = speed
+    utterance.pitch = pitch
+    utterance.volume = 1
+    
+    utterance.onstart = () => {
+      setIsPlaying(true)
+      setError(null)
+    }
+    
+    utterance.onend = () => {
+      setIsPlaying(false)
+      onEnd?.()
+    }
+    
+    utterance.onerror = (event) => {
+      setIsPlaying(false)
+      if (event.error === 'interrupted' && isManualStopRef.current) {
+        return
+      }
+      setError(`朗读失败: ${event.error}`)
+    }
+    
+    speechRef.current = utterance
+    synthRef.current.speak(utterance)
+  }
+
   // 开始朗读
   const handleStartReading = () => {
     if (!text.trim()) {
@@ -220,10 +269,10 @@ export default function TTSTool() {
   const handlePlayNext = () => {
     if (mode === "segment" && currentSegment < segments.length - 1) {
       handleStopReading()
-      const nextSegment = currentSegment + 1
+      const nextSegment = Math.min(currentSegment + segmentsPerRead, segments.length - 1)
       setCurrentSegment(nextSegment)
       setTimeout(() => {
-        speak(segments[nextSegment])
+        speakMultipleSegments(nextSegment, segmentsPerRead)
       }, 100)
     }
   }
@@ -238,7 +287,7 @@ export default function TTSTool() {
         if (mode === "full") {
           speak(text)
         } else if (segments[currentSegment]) {
-          speak(segments[currentSegment])
+          speakMultipleSegments(currentSegment, segmentsPerRead)
         }
       }, 100)
     }
@@ -254,7 +303,7 @@ export default function TTSTool() {
         if (mode === "full") {
           speak(text)
         } else if (segments[currentSegment]) {
-          speak(segments[currentSegment])
+          speakMultipleSegments(currentSegment, segmentsPerRead)
         }
       }, 100)
     }
@@ -549,7 +598,7 @@ export default function TTSTool() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label className="text-base">
-                        句子列表 ({currentSegment + 1}/{segments.length})
+                        句子列表 ({currentSegment + 1}-{Math.min(currentSegment + segmentsPerRead, segments.length)}/{segments.length})
                       </Label>
                       <div className="flex gap-2">
                         <Button
@@ -568,7 +617,7 @@ export default function TTSTool() {
                           key={index}
                           className={cn(
                             "p-4 border rounded-lg cursor-pointer transition-all",
-                            index === currentSegment 
+                            index >= currentSegment && index < currentSegment + segmentsPerRead
                               ? 'bg-primary/10 border-primary shadow-sm' 
                               : 'border-border hover:bg-muted/50'
                           )}
@@ -576,7 +625,7 @@ export default function TTSTool() {
                             handleStopReading()
                             setCurrentSegment(index)
                             setTimeout(() => {
-                              speak(segment)
+                              speakMultipleSegments(index, segmentsPerRead)
                             }, 100)
                           }}
                         >
@@ -611,7 +660,7 @@ export default function TTSTool() {
                       <Button
                         variant="default"
                         size="icon"
-                        onClick={isPlaying ? handleStopReading : () => speak(segments[currentSegment] || segments[0])}
+                        onClick={isPlaying ? handleStopReading : () => speakMultipleSegments(currentSegment, segmentsPerRead)}
                         className="h-14 w-14"
                         disabled={segments.length === 0}
                       >
@@ -621,11 +670,11 @@ export default function TTSTool() {
                       <Button
                         variant="outline"
                         onClick={handlePlayNext}
-                        disabled={currentSegment >= segments.length - 1}
+                        disabled={currentSegment + segmentsPerRead >= segments.length}
                         className="px-6 gap-2"
                       >
                         <SkipForward className="h-4 w-4" />
-                        下一条
+                        {segmentsPerRead === 1 ? "下一条" : `播放${segmentsPerRead}条`}
                       </Button>
                     </div>
                   </div>
@@ -648,6 +697,22 @@ export default function TTSTool() {
                                 {voice.displayName} ({voice.lang})
                               </SelectItem>
                             ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="segments-per-read">连读</Label>
+                        <Select value={segmentsPerRead.toString()} onValueChange={(value) => setSegmentsPerRead(parseInt(value))}>
+                          <SelectTrigger id="segments-per-read" className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1句</SelectItem>
+                            <SelectItem value="2">2句</SelectItem>
+                            <SelectItem value="3">3句</SelectItem>
+                            <SelectItem value="4">4句</SelectItem>
+                            <SelectItem value="5">5句</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
