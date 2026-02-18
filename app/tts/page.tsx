@@ -129,7 +129,7 @@ export default function TTSTool() {
     if (!input.trim()) return []
     
     // 改进分割逻辑，保留标点符号
-    const segmentEndings = /([，。！？；,.!?:;]+)/g
+    const segmentEndings = /([，。！？；.!?:;]+)/g
     const parts = input.split(segmentEndings)
     
     const result: string[] = []
