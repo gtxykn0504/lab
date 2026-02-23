@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { Move, Paintbrush, Eraser, RotateCcw, Download } from "lucide-react";
+import { Move, Paintbrush, Eraser, RotateCcw, Download, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
@@ -12,6 +12,7 @@ interface ToolbarProps {
   setCurrentColor: (color: string) => void;
   onReset: () => void;
   onExport: () => void;
+  onShare: () => void;
 }
 
 const COLORS = [
@@ -36,6 +37,7 @@ export function Toolbar({
   setCurrentColor,
   onReset,
   onExport,
+  onShare,
 }: ToolbarProps) {
   return (
     <div className="fixed bottom-6 left-6 flex flex-col gap-3 z-50">
@@ -70,6 +72,9 @@ export function Toolbar({
         </ToolButton>
         <ToolButton onClick={onExport} tooltip="导出图片">
           <Download className="w-4 h-4" />
+        </ToolButton>
+        <ToolButton onClick={onShare} tooltip="分享链接">
+          <Share2 className="w-4 h-4" />
         </ToolButton>
       </div>
 

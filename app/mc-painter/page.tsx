@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { PixelCanvas } from "@/components/mc/pixel-canvas";
 import { Toolbar } from "@/components/mc/toolbar";
 import { CoordinatesDisplay } from "@/components/mc/coordinates-display";
@@ -8,8 +8,10 @@ import { FunctionPanel, type FunctionItem } from "@/components/mc/function-panel
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CoordinateInputDialog } from "@/components/mc/coordinate-input-dialog";
+import { ShareDialog, useUrlPixels } from "@/components/mc/share-dialog";
 
 export default function PixelPainter() {
+  const urlPixels = useUrlPixels();
   const [pixels, setPixels] = useState<Map<string, string>>(new Map());
   const [offset, setOffset] = useState({ x: 400, y: 300 });
   const [tool, setTool] = useState<"brush" | "eraser" | "pan">("pan");
@@ -18,7 +20,14 @@ export default function PixelPainter() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [emptyCanvasDialogOpen, setEmptyCanvasDialogOpen] = useState(false);
   const [coordinateDialogOpen, setCoordinateDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const gridSize = 24;
+
+  useEffect(() => {
+    if (urlPixels.size > 0) {
+      setPixels(urlPixels);
+    }
+  }, [urlPixels]);
 
   const handleReset = useCallback(() => {
     setResetDialogOpen(true);
@@ -111,6 +120,14 @@ export default function PixelPainter() {
     link.click();
   }, [pixels, gridSize]);
 
+  const handleShare = useCallback(() => {
+    if (pixels.size === 0) {
+      setEmptyCanvasDialogOpen(true);
+      return;
+    }
+    setShareDialogOpen(true);
+  }, [pixels]);
+
   return (
     <main className="w-screen h-screen overflow-hidden relative">
       <PixelCanvas
@@ -130,6 +147,7 @@ export default function PixelPainter() {
         setCurrentColor={setCurrentColor}
         onReset={handleReset}
         onExport={handleExport}
+        onShare={handleShare}
       />
       <CoordinatesDisplay offset={offset} gridSize={gridSize} onOpenCoordinateDialog={() => setCoordinateDialogOpen(true)} />
       <FunctionPanel functions={functions} setFunctions={setFunctions} setPixels={setPixels} />
@@ -162,6 +180,7 @@ export default function PixelPainter() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} pixels={pixels} />
       <CoordinateInputDialog
         open={coordinateDialogOpen}
         onClose={() => setCoordinateDialogOpen(false)}
