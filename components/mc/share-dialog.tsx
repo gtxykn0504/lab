@@ -94,10 +94,15 @@ export function ShareDialog({ open, onOpenChange, pixels }: ShareDialogProps) {
   }, [shareUrl, onOpenChange]);
 
   useEffect(() => {
-    if (open && pixels.size > 0) {
+    if (!open) return;
+
+    // 每次打开对话框时清空上一次的链接和错误状态
+    setShareUrl("");
+    setError("");
+
+    if (pixels.size > 0) {
       const encoded = encodePixelsToUrl(pixels);
       setIsLoading(true);
-      setError("");
       
       fetch('/api/short-link', {
         method: 'POST',
@@ -121,6 +126,8 @@ export function ShareDialog({ open, onOpenChange, pixels }: ShareDialogProps) {
         .finally(() => {
           setIsLoading(false);
         });
+    } else {
+      setIsLoading(false);
     }
   }, [open, pixelsKey]);
 
@@ -137,15 +144,17 @@ export function ShareDialog({ open, onOpenChange, pixels }: ShareDialogProps) {
               {error}
             </div>
           )}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={shareUrl}
-              readOnly
-              placeholder={isLoading ? "正在生成短链接..." : ""}
-              className="flex-1 px-3 py-2 text-sm border rounded-md bg-muted"
-            />
-          </div>
+          {!error && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                placeholder={isLoading ? "正在生成短链接..." : ""}
+                className="flex-1 px-3 py-2 text-sm border rounded-md bg-muted"
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>

@@ -23,8 +23,7 @@ export async function POST(request: NextRequest) {
     const timestamp = Math.floor(Date.now() / 1000);
     const slug = `mc-${timestamp}`;
     
-    const baseUrl = 'https://s.ofhe.cn';
-    const targetUrl = `${baseUrl}/mc-painter?data=${encodeURIComponent(data)}`;
+    const targetUrl = `https://lab.ofhe.cn/mc-painter?data=${encodeURIComponent(data)}`;
     
     const response = await fetch('https://s.ofhe.cn/api/v1/links', {
       method: 'POST',
